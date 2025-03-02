@@ -17,16 +17,18 @@ Fraudy is a real-time fraud detection and alerting system built for monitoring S
   * Slack
   * Telegram
   * Discord
+ 
 📊 User-configurable notifications
+
 🛠 Built with: Go, PostgreSQL, Redis, Stellar SDK
 
 # 🛠 Tech Stack
-Backend: Go (Golang)
-Database: PostgreSQL
-Caching: Redis
-Blockchain API: Stellar Horizon API
-Message Queue: (Future Implementation)
-Deployment: Docker, Docker Compose
+- Backend: Go (Golang)
+- Database: PostgreSQL
+- Caching: Redis
+- Blockchain API: Stellar Horizon API
+- Message Queue: (Future Implementation)
+- Deployment: Docker, Docker Compose
 
 # 🔄 Future Improvements
 - Add Webhook support for custom integrations
