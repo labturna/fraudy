@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fraudy
+    ports:
+      - "5432:5432"
+    networks:
+      - fraudy-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - fraudy-network
+
+  backend:
+    build: .
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy  
+      redis:
+        condition: service_started
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=fraudy
+      - DB_PORT=5432
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "8080:8080"
+    networks:
+      - fraudy-network
+
+networks:
+  fraudy-network:
+    driver: bridge
