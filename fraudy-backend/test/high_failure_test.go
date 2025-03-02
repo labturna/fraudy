@@ -14,7 +14,7 @@ import (
 
 // Stellar Test Accounts
 const senderPublic = "GD3DH2HMP5H6LJZEU5FHF2NPM7IXJCUNFFU7CUER74NR6VNHWKVLYRSR"
-const senderPrivate = "SB6Y76GHUIWDZWJO4W2MVY4JD4I7XTV4CPKI4KUQYVIMQXYLF7JXGHGZ"
+const senderPrivate = ""
 const receiverPublic = "GBPUZMFJIUJ5ZVJR4YIJ4QA2CIRQGAZUWOOP4UJ5K7W7W5EEQRMEFLJZ"
 
 var failedTxCache = make(map[string][]string)
