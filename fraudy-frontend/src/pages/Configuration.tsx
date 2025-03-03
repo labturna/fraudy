@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SelectChangeEvent } from "@mui/material";
+import { SelectChangeEvent, Snackbar, Alert } from "@mui/material";
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 import {
@@ -31,6 +31,10 @@ const Configuration: React.FC = () => {
     const [telegramChatId, setTelegramChatId] = useState("");
     const [discordChannel, setDiscordChannel] = useState("");
     const [openModal, setOpenModal] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("");
+    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
+    const [refreshConfig, setRefreshConfig] = useState(false);
 
     const handleOpenModal = () => {
         setOpenModal(true);
@@ -71,11 +75,11 @@ const Configuration: React.FC = () => {
             // Validate email format
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailPattern.test(inputValue.trim())) {
-                return; 
+                return;
             }
 
             setRecipientEmails([...recipientEmails, inputValue.trim()]);
-            setInputValue(""); 
+            setInputValue("");
         }
     };
 
@@ -99,13 +103,19 @@ const Configuration: React.FC = () => {
         setDiscordChannel(event.target.value);
     };
 
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
     const handleSubmit = async () => {
         const token = localStorage.getItem("jwtToken");
         if (!token) {
-            alert("Unauthorized: Please log in.");
+            setSnackbarMessage("Unauthorized: Please log in.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
             return;
         }
-    
+
         const payload = {
             config_name: configName,
             notification_type: notificationPreference,
@@ -118,7 +128,7 @@ const Configuration: React.FC = () => {
             telegram_chat_id: telegramChatId || null,
             discord_channel: discordChannel || null,
         };
-    
+
         try {
             const response = await fetch("http://localhost:8080/api/notification-configs", {
                 method: "POST",
@@ -128,16 +138,37 @@ const Configuration: React.FC = () => {
                 },
                 body: JSON.stringify(payload),
             });
-    
+
             if (!response.ok) {
-                throw new Error("Failed to save configuration.");
+                const errorText = await response.text();
+                throw new Error(errorText || "Failed to save configuration.");
             }
-    
-            alert("Configuration saved successfully!");
-            handleCloseModal();
-        } catch (error) {
+
+            setSnackbarMessage("Configuration saved successfully!");
+            setSnackbarSeverity("success");
+            setSnackbarOpen(true);
+
+            // ✅ Refresh configuration table after saving
+            setRefreshConfig((prev) => !prev);
+
+            // Clear form fields
+            setConfigName("");
+            setNotificationPreference("");
+            setSlackChannel("");
+            setEmailAddress("");
+            setSenderPassword("");
+            setSmtpServer("");
+            setSmtpPort("");
+            setRecipientEmails([]);
+            setTelegramChatId("");
+            setDiscordChannel("");
+
+            handleCloseModal(); 
+        } catch (error: any) {
             console.error("❌ Error saving configuration:", error);
-            alert("An error occurred. Please try again.");
+            setSnackbarMessage(error.message || "An error occurred. Please try again.");
+            setSnackbarSeverity("error");
+            setSnackbarOpen(true);
         }
     };
 
@@ -158,7 +189,7 @@ const Configuration: React.FC = () => {
                     Create Configuration
                 </Button>
             </Box>
-            <ConfigurationTable />
+            <ConfigurationTable refreshConfig={refreshConfig} /> 
 
             <Modal
                 open={openModal}
@@ -302,6 +333,11 @@ const Configuration: React.FC = () => {
                     </Box>
                 </Fade>
             </Modal>
+            <Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };

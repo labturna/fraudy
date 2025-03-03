@@ -52,6 +52,8 @@ func main() {
 	api.HandleFunc("/alerts", handlers.GetUserAlerts).Methods("GET")
 	api.HandleFunc("/notification-configs", handlers.GetUserNotificationConfigs).Methods("GET")
 	api.HandleFunc("/notification-configs", handlers.CreateNotificationConfig).Methods("POST")
+	api.HandleFunc("/notification-configs/{id}", handlers.DeleteNotificationConfig).Methods("DELETE")
+	api.HandleFunc("/fraud-activities", handlers.GetFraudActivities).Methods("GET")
 
 	handler := corsOptions.Handler(r)
 	port := os.Getenv("PORT")

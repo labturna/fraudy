@@ -171,7 +171,7 @@ func detectHighFailureRate(tx horizon.Transaction, userID int) {
 		fmt.Printf("⚠️ Skipping already processed transaction: %s\n", tx.Hash)
 		return
 	}
-	RedisClient.Set(ctx, processedKey, "processed", 30*time.Minute)
+	RedisClient.Set(ctx, processedKey, "processed", 10*time.Minute)
 
 	failedTxLock.Lock()
 	defer failedTxLock.Unlock()
@@ -199,6 +199,7 @@ func detectHighFailureRate(tx horizon.Transaction, userID int) {
 			Account:      account,
 			Type:         "highFailureRate",
 			FailureCount: len(failedTxCache[account]),
+			Flag:         "Medium",
 		}
 		database.DB.Create(&fraud)
 
@@ -215,6 +216,7 @@ func detectHighFailureRate(tx horizon.Transaction, userID int) {
 			AlertName:              "High Failure Rate Alert",
 			RuleType:               "highFailureRate",
 			WalletID:               account,
+			Flag:                	"Medium",
 			NotificationPreferences: string(preferencesJSON),
 		}
 

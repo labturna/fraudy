@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"fraudy-backend/internal/database"
 	"fraudy-backend/internal/models"
+	"github.com/gorilla/mux"
 )
 
 type NotificationConfigRequest struct {
@@ -48,7 +49,7 @@ func CreateNotificationConfig(w http.ResponseWriter, r *http.Request) {
 		EmailPassword:   req.EmailPassword,
 		SMTPServer:      req.SMTPServer,
 		SMTPPort:        req.SMTPPort,
-		RecipientEmails: string(recipientEmailsJSON), // Convert slice to string
+		RecipientEmails: string(recipientEmailsJSON),
 		TelegramChatID:  req.TelegramChatID,
 		DiscordChannel:  req.DiscordChannel,
 	}
@@ -80,4 +81,28 @@ func GetUserNotificationConfigs(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(configs)
+}
+
+func DeleteNotificationConfig(w http.ResponseWriter, r *http.Request) {
+	userID, ok := r.Context().Value("user_id").(int)
+	if !ok {
+		http.Error(w, "Unauthorized: Unable to extract user ID", http.StatusUnauthorized)
+		return
+	}
+
+	vars := mux.Vars(r)
+	configID := vars["id"]
+
+	var config models.NotificationConfig
+	result := database.DB.Where("id = ? AND user_id = ?", configID, userID).First(&config)
+	if result.Error != nil {
+		http.Error(w, "Configuration not found or unauthorized", http.StatusNotFound)
+		return
+	}
+
+	// Delete the configuration
+	database.DB.Delete(&config)
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "Notification configuration deleted successfully"})
 }

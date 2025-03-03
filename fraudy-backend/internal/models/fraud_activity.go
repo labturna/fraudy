@@ -9,4 +9,5 @@ type FraudActivity struct {
 	TransactionHash string `gorm:"size:100;not null"` 
 	Sequence       string `gorm:"size:50;not null"`  
 	FailureCount   int    
+	Flag            string `gorm:"size:20;not null"`
 }

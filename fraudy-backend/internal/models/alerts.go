@@ -11,6 +11,7 @@ type Alert struct {
 	RuleType               string         `gorm:"size:50;not null"` 
 	NotificationPreferences string         `gorm:"type:jsonb"` 
 	WalletID           string  `gorm:"size:255;not null"`
+	Flag                   string `gorm:"size:50;not null"`
 	TransactionThreshold float64 `gorm:"not null"`
 	TimeFrame          int     `gorm:"not null"` 
 	TransactionStatus  bool    `gorm:"not null"`
