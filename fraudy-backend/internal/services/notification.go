@@ -15,12 +15,17 @@ func SendEmailNotification(userID int, alert models.Alert) error {
 	if result.Error != nil {
 		return fmt.Errorf("❌ Error fetching email config for user ID %d: %v", userID, result.Error)
 	}
+
 	var toEmails []string
-	if err := json.Unmarshal([]byte(alert.NotificationPreferences), &toEmails); err != nil {
-		return fmt.Errorf("❌ Error parsing notification preferences: %v", err)
+	if err := json.Unmarshal([]byte(strings.Trim(config.RecipientEmails, `"`)), &toEmails); err != nil {
+		return fmt.Errorf("❌ Error parsing recipient emails: %v", err)
 	}
+
+	fmt.Println("📩 Parsed Recipient Emails:", toEmails)
+
 	addr := fmt.Sprintf("%s:%s", config.SMTPServer, config.SMTPPort)
 	auth := smtp.PlainAuth("", config.EmailSender, config.EmailPassword, config.SMTPServer)
+
 	subject := "🚨 Fraud Alert Triggered!"
 	body := fmt.Sprintf(
 		"Hello,\n\nA fraud alert has been triggered!\n\nAlert Name: %s\nRule Type: %s\nWallet ID: %s\nTriggered At: %s\n\nBest regards,\nFraudy Team",
@@ -36,8 +41,9 @@ func SendEmailNotification(userID int, alert models.Alert) error {
 
 	err := smtp.SendMail(addr, auth, config.EmailSender, toEmails, []byte(message))
 	if err != nil {
-		fmt.Printf("smtp error: %s", err)
+		return fmt.Errorf("❌ SMTP error: %s", err)
 	}
+
 	fmt.Println("✅ Email notification sent successfully!")
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 )
 
 // Sender and Receiver Account Keys
-const senderSecret = "SB6Y76GHUIWDZWJO4W2MVY4JD4I7XTV4CPKI4KUQYVIMQXYLF7JXGHGZ" // Sender Secret Key
+const senderSecret = "" // Sender Secret Key
 const receiverPublic = "GBPUZMFJIUJ5ZVJR4YIJ4QA2CIRQGAZUWOOP4UJ5K7W7W5EEQRMEFLJZ" // Receiver Public Key
 
 func main() {
