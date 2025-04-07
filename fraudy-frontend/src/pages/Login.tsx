@@ -1,112 +1,120 @@
 import React, { useState } from "react";
-import { Box, Card, CardContent, TextField, Button, Typography, Divider, FormControl, Link } from "@mui/material";
+import {
+    Box, Card, CardContent, TextField, Button, Typography, Divider, Link,
+    IconButton, InputAdornment
+} from "@mui/material";
 import GoogleIcon from "@mui/icons-material/Google";
-import LoginImage from "../assets/img/login-img.jpg";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 const LoginPage: React.FC = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleLogin = async () => {
         if (!email.trim() || !password.trim()) {
-            alert("Please fill in both fields.");
+            toast.error("Please fill in both fields.");
             return;
         }
         try {
             const response = await fetch("http://localhost:8080/login", {
                 method: "POST",
-                credentials: "include", // include cookies if needed
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, password }),
             });
-            if (!response.ok) {
-                throw new Error("Login failed.");
-            }
             const data = await response.json();
-            // Assuming your backend returns { token: "..." }
             if (data.token) {
                 localStorage.setItem("jwtToken", data.token);
-                alert("Login successful!");
                 navigate("/");
             } else {
-                alert("Login failed: no token received.");
+                toast.error("Invalid email or password.");
             }
         } catch (error) {
             console.error("Login error:", error);
-            alert("An error occurred during login. Please try again.");
+            toast.error("An error occurred while logging in.");
         }
     };
+
     return (
-        <Box
-            sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100vh",
-            }}
-        >
-            <Card
-                sx={{
-                    display: "flex",
-                    width: 800,
-                    borderRadius: 3,
-                    boxShadow: 3,
-                    backdropFilter: "blur(16px) saturate(180%)",
-                    WebkitBackdropFilter: "blur(16px) saturate(180%)",
-                    backgroundColor: "rgb(90, 126, 223)",
-                    border: "1px solid rgba(93, 131, 214, 0.3)",
-                }}
-            >
-                {/* Sol Taraf - Görsel */}
-                <Box
-                    sx={{
-                        width: "40%",
-                        backgroundImage: `url(${LoginImage})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                        borderRadius: "12px 0 0 12px"
-                    }}
-                />
+        <Box sx={{
+            display: "flex",
+            height: "100vh",
+            justifyContent: "center",
+            alignItems: "center",
+            background: "linear-gradient(to right, #0f2027, #203a43, #2c5364)",
+            padding: 2
+        }}>
+            <Card sx={{
+                width: 400,
+                borderRadius: 4,
+                boxShadow: 8,
+                backgroundColor: "rgba(18, 32, 47, 0.85)",
+                backdropFilter: "blur(12px)",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                color: "#e0e0e0",
+                p: 4
+            }}>
+                <CardContent sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <Typography variant="h4" fontWeight="bold" textAlign="center">Welcome Back</Typography>
 
-                <CardContent sx={{ width: "60%", display: "flex", flexDirection: "column", gap: 2 }}>
-                    <Typography variant="h5" fontWeight="bold" textAlign="center">
-                        Login
-                    </Typography>
+                    <TextField
+                        label="Email"
+                        variant="outlined"
+                        fullWidth
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        InputLabelProps={{ sx: { color: "#e0e0e0" } }}
+                        InputProps={{
+                            sx: { color: "#e0e0e0", "& .MuiOutlinedInput-notchedOutline": { borderColor: "#ccc" } }
+                        }}
+                    />
 
-                    <TextField sx={{ color: "white" }} label="Email" variant="outlined" fullWidth InputLabelProps={{ sx: { color: "white" } }}  value={email}
-            onChange={(e) => setEmail(e.target.value)}/>
-                    <TextField label="Password" type="password" variant="outlined" fullWidth InputLabelProps={{ sx: { color: "white" } }} value={password}
-            onChange={(e) => setPassword(e.target.value)} />
+                    <TextField
+                        label="Password"
+                        type={showPassword ? "text" : "password"}
+                        variant="outlined"
+                        fullWidth
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        InputLabelProps={{ sx: { color: "#e0e0e0" } }}
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={() => setShowPassword(!showPassword)} sx={{ color: "#e0e0e0" }}>
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                            sx: { color: "#e0e0e0", "& .MuiOutlinedInput-notchedOutline": { borderColor: "#ccc" } }
+                        }}
+                    />
 
-                    <Button variant="contained" sx={{ color: "white", backgroundColor: "primary" }} fullWidth onClick={handleLogin}>
+                    <Button variant="contained" fullWidth onClick={handleLogin} sx={{
+                        py: 1.5,
+                        background: "linear-gradient(to right, #1c92d2, #f2fcfe)",
+                        color: "#0f2027",
+                        fontWeight: "bold"
+                    }}>
                         Login
                     </Button>
-                    <FormControl>
-                        <Box sx={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
-                            <Typography variant="body2" color="white">
-                                Forgot Password?
-                            </Typography>
-                            <Typography variant="body2" color="white">
-                                <Link href="/register" sx={{ color: "white", textDecoration: 'none' }}>Sign up</Link>
-                            </Typography>
-                        </Box>
-                    </FormControl>
 
-                    <Divider sx={{
-                        "&::before, &::after": {
-                            borderColor: "white",
-                        },
-                    }} >OR</Divider>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                        <Link href="#" underline="hover" sx={{ color: "#e0e0e0" }}>Forgot password?</Link>
+                        <Link href="/register" underline="hover" sx={{ color: "#e0e0e0" }}>Create account</Link>
+                    </Box>
 
-                    <Button
-                        variant="outlined"
-                        startIcon={<GoogleIcon />}
-                        fullWidth
-                        sx={{ textTransform: "none", color: "white" }}
-                    >
+                    <Divider sx={{ borderColor: "rgba(255,255,255,0.2)" }}>OR</Divider>
+
+                    <Button variant="outlined" startIcon={<GoogleIcon />} fullWidth sx={{
+                        color: "#e0e0e0",
+                        borderColor: "#e0e0e0",
+                        textTransform: "none",
+                        ":hover": { backgroundColor: "rgba(255,255,255,0.1)" }
+                    }}>
                         Login with Google
                     </Button>
                 </CardContent>

@@ -1,23 +1,12 @@
 import React, { useState } from "react";
-import { SelectChangeEvent, Snackbar, Alert } from "@mui/material";
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
 import {
-    Modal,
-    Fade,
-    Box,
-    Container,
-    Typography,
-    TextField,
-    Select,
-    MenuItem,
-    Button,
-    Chip,
-    Paper
+    Box, Container, Typography, Button, Modal, Fade, TextField,
+    SelectChangeEvent, Select, MenuItem, Chip,
+    Paper, FormControl, InputLabel, useTheme, useMediaQuery
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import ConfigurationTable from "../components/ConfigurationTable";
-
+import { toast } from "react-toastify";
 const Configuration: React.FC = () => {
     const [notificationPreference, setNotificationPreference] = useState("");
     const [configName, setConfigName] = useState("");
@@ -31,88 +20,17 @@ const Configuration: React.FC = () => {
     const [telegramChatId, setTelegramChatId] = useState("");
     const [discordChannel, setDiscordChannel] = useState("");
     const [openModal, setOpenModal] = useState(false);
-    const [snackbarOpen, setSnackbarOpen] = useState(false);
-    const [snackbarMessage, setSnackbarMessage] = useState("");
-    const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">("success");
     const [refreshConfig, setRefreshConfig] = useState(false);
 
-    const handleOpenModal = () => {
-        setOpenModal(true);
-    };
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-    };
-
-    const handleConfigNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setConfigName(event.target.value);
-    };
-
-    const handleNotificationPreferenceChange = (event: SelectChangeEvent<string>) => {
-        setNotificationPreference(event.target.value as string);
-    };
-
-    const handleSenderPasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSenderPassword(event.target.value);
-    };
-
-    const handleSmtpServerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSmtpServer(event.target.value);
-    };
-
-    const handleSmtpPortChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSmtpPort(event.target.value);
-    };
-
-    const handleRecipientEmailsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputValue(event.target.value);
-    };
-
-    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-        if (event.key === "Enter" && inputValue.trim() !== "") {
-            event.preventDefault();
-
-            // Validate email format
-            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailPattern.test(inputValue.trim())) {
-                return;
-            }
-
-            setRecipientEmails([...recipientEmails, inputValue.trim()]);
-            setInputValue("");
-        }
-    };
-
-    const handleDelete = (emailToDelete: string) => {
-        setRecipientEmails(recipientEmails.filter((email) => email !== emailToDelete));
-    };
-
-    const handleSlackChannelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSlackChannel(event.target.value);
-    };
-
-    const handleEmailAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setEmailAddress(event.target.value);
-    };
-
-    const handleTelegramChatIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTelegramChatId(event.target.value);
-    };
-
-    const handleDiscordChannelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setDiscordChannel(event.target.value);
-    };
-
-    const handleSnackbarClose = () => {
-        setSnackbarOpen(false);
-    };
-
+    const handleOpenModal = () => setOpenModal(true);
+    const handleCloseModal = () => setOpenModal(false);
     const handleSubmit = async () => {
         const token = localStorage.getItem("jwtToken");
         if (!token) {
-            setSnackbarMessage("Unauthorized: Please log in.");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true);
+            toast.error("Unauthorized: Please log in.");
             return;
         }
 
@@ -134,101 +52,110 @@ const Configuration: React.FC = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(payload),
             });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || "Failed to save configuration.");
-            }
+            if (!response.ok) throw new Error(await response.text());
 
-            setSnackbarMessage("Configuration saved successfully!");
-            setSnackbarSeverity("success");
-            setSnackbarOpen(true);
-
-            // ✅ Refresh configuration table after saving
-            setRefreshConfig((prev) => !prev);
-
-            // Clear form fields
-            setConfigName("");
-            setNotificationPreference("");
-            setSlackChannel("");
-            setEmailAddress("");
-            setSenderPassword("");
-            setSmtpServer("");
-            setSmtpPort("");
-            setRecipientEmails([]);
-            setTelegramChatId("");
-            setDiscordChannel("");
-
-            handleCloseModal(); 
+            toast.success("Configuration saved successfully!");
+            setRefreshConfig(prev => !prev);
+            resetForm();
         } catch (error: any) {
-            console.error("❌ Error saving configuration:", error);
-            setSnackbarMessage(error.message || "An error occurred. Please try again.");
-            setSnackbarSeverity("error");
-            setSnackbarOpen(true);
+            console.error("Error saving configuration:", error);
+            toast.error("Failed to save configuration: " + error.message);
         }
+    };
+
+    const resetForm = () => {
+        setConfigName("");
+        setNotificationPreference("");
+        setSlackChannel("");
+        setEmailAddress("");
+        setSenderPassword("");
+        setSmtpServer("");
+        setSmtpPort("");
+        setRecipientEmails([]);
+        setInputValue("");
+        setTelegramChatId("");
+        setDiscordChannel("");
+        handleCloseModal();
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === "Enter" && inputValue.trim() !== "") {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (emailPattern.test(inputValue.trim())) {
+                setRecipientEmails([...recipientEmails, inputValue.trim()]);
+                setInputValue("");
+            }
+        }
+    };
+
+    const handleDelete = (emailToDelete: string) => {
+        setRecipientEmails(recipientEmails.filter((email) => email !== emailToDelete));
     };
 
     return (
         <Box
             sx={{
-                height: "100vh",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
+                minHeight: "100vh",
+                background: theme.palette.mode === "dark"
+                    ? "linear-gradient(to right, #0f2027, #203a43, #2c5364)"
+                    : "linear-gradient(to right, #ffffff, #f0f4f8)",
+                color: theme.palette.text.primary,
             }}
         >
             <Navbar />
-            <Box sx={{ display: "flex", justifyContent: "space-between", width: "52%" }}>
-                <Typography variant="h4">Configurations</Typography>
-                <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                    Create Configuration
-                </Button>
-            </Box>
-            <ConfigurationTable refreshConfig={refreshConfig} /> 
+            <Container sx={{ pt: 15 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" flexDirection={isMobile ? "column" : "row"} gap={2} mb={4}>
+                    <Typography variant="h4" fontWeight={600}>Configurations</Typography>
+                    <Button variant="contained" onClick={handleOpenModal}>
+                        Create Configuration
+                    </Button>
+                </Box>
 
-            <Modal
-                open={openModal}
-                onClose={handleCloseModal}
-                aria-labelledby="alert-modal-title"
-                aria-describedby="alert-modal-description"
-            >
-                <Fade in={openModal}>
-                    <Box sx={{
-                        position: 'absolute',
-                        borderRadius: 6,
-                        width: "70%",
-                        backgroundColor: "#353e96",
-                        border: '2px solid #fff',
-                        boxShadow: 12,
-                        p: 4,
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                    }}>
+                <ConfigurationTable refreshConfig={refreshConfig} />
 
-                        <Container maxWidth="md">
-                            <Typography variant="h4" gutterBottom>
-                                Create Configuration
-                            </Typography>
+                {/* MODAL */}
+                <Modal open={openModal} onClose={handleCloseModal}>
+                    <Fade in={openModal}>
+                        <Box
+                            sx={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                width: isMobile ? "90%" : "60%",
+                                maxHeight: "90vh",
+                                overflowY: "auto",
+                                background: theme.palette.mode === "dark"
+                                    ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
+                                    : "linear-gradient(to right, #ffffff, #f0f4f8)",
+                                color: theme.palette.text.primary,
+                                borderRadius: 4,
+                                boxShadow: 24,
+                                p: 4,
+                            }}
+                        >
+                            <Typography variant="h5" gutterBottom>Create Configuration</Typography>
+
                             <TextField
                                 label="Configuration Name"
+                                fullWidth
                                 value={configName}
-                                onChange={handleConfigNameChange}
-                                fullWidth></TextField>
-                            <FormControl variant="filled" sx={{ minWidth: "100%", marginTop: 2 }}>
-                                <InputLabel id="notification">Notification Preference</InputLabel>
+                                onChange={(e) => setConfigName(e.target.value)}
+                                sx={{ mb: 2 }}
+                            />
+
+                            <FormControl fullWidth sx={{ mb: 2 }}>
+                                <InputLabel id="notif-label">Notification Preference</InputLabel>
                                 <Select
-                                    labelId="notification"
+                                    labelId="notif-label"
                                     value={notificationPreference}
-                                    onChange={handleNotificationPreferenceChange}
-                                    fullWidth
-                                    sx={{ marginTop: "5px" }}
-                                    inputProps={{ style: { textEmphasisColor: "white" } }}
+                                    onChange={(e: SelectChangeEvent<string>) => setNotificationPreference(e.target.value)}
+                                    label="Notification Preference"
                                 >
                                     <MenuItem value="slack">Slack</MenuItem>
                                     <MenuItem value="email">Email</MenuItem>
@@ -236,54 +163,53 @@ const Configuration: React.FC = () => {
                                     <MenuItem value="discord">Discord</MenuItem>
                                 </Select>
                             </FormControl>
+
                             {notificationPreference === "slack" && (
                                 <TextField
                                     label="Slack Webhook URL"
-                                    value={slackChannel}
-                                    onChange={handleSlackChannelChange}
                                     fullWidth
-                                    sx={{ marginTop: "8px" }}
+                                    value={slackChannel}
+                                    onChange={(e) => setSlackChannel(e.target.value)}
+                                    sx={{ mb: 2 }}
                                 />
                             )}
+
                             {notificationPreference === "email" && (
-                                <Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                                <>
+                                    <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} mb={2}>
                                         <TextField
                                             label="Sender Email"
-                                            value={emailAddress}
-                                            onChange={handleEmailAddressChange}
                                             fullWidth
-                                            sx={{ minWidth: "48%", marginRight: "8px" }}
+                                            value={emailAddress}
+                                            onChange={(e) => setEmailAddress(e.target.value)}
                                         />
                                         <TextField
-                                            label="Sender Email Password"
-                                            value={senderPassword}
-                                            onChange={handleSenderPasswordChange}
+                                            label="Sender Password"
+                                            fullWidth
                                             type="password"
-                                            sx={{ minWidth: "48%" }}
-                                        ></TextField>
+                                            value={senderPassword}
+                                            onChange={(e) => setSenderPassword(e.target.value)}
+                                        />
                                     </Box>
-                                    <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
+                                    <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} mb={2}>
                                         <TextField
                                             label="SMTP Server"
-                                            value={smtpServer}
-                                            onChange={handleSmtpServerChange}
                                             fullWidth
-                                            sx={{ minWidth: "48%", marginRight: "8px" }}
+                                            value={smtpServer}
+                                            onChange={(e) => setSmtpServer(e.target.value)}
                                         />
                                         <TextField
                                             label="SMTP Port"
-                                            value={smtpPort}
-                                            onChange={handleSmtpPortChange}
                                             fullWidth
-                                            sx={{ minWidth: "48%" }}
+                                            value={smtpPort}
+                                            onChange={(e) => setSmtpPort(e.target.value)}
                                         />
                                     </Box>
-                                    <Box sx={{ marginTop: 2 }}>
+                                    <Box mb={2}>
                                         <TextField
                                             label="Recipient Email"
                                             value={inputValue}
-                                            onChange={handleRecipientEmailsChange}
+                                            onChange={(e) => setInputValue(e.target.value)}
                                             onKeyDown={handleKeyDown}
                                             fullWidth
                                         />
@@ -300,48 +226,48 @@ const Configuration: React.FC = () => {
                                             }}
                                         >
                                             {recipientEmails.map((email, index) => (
-                                                <Chip key={index} label={email} onDelete={() => handleDelete(email)} />
+                                                <Chip
+                                                    key={index}
+                                                    label={email}
+                                                    onDelete={() => handleDelete(email)}
+                                                />
                                             ))}
                                         </Paper>
                                     </Box>
-                                </Box>
+                                </>
                             )}
+
                             {notificationPreference === "telegram" && (
                                 <TextField
                                     label="Telegram Chat ID"
-                                    value={telegramChatId}
-                                    onChange={handleTelegramChatIdChange}
                                     fullWidth
-                                    sx={{ marginTop: "8px" }}
+                                    value={telegramChatId}
+                                    onChange={(e) => setTelegramChatId(e.target.value)}
+                                    sx={{ mb: 2 }}
                                 />
                             )}
+
                             {notificationPreference === "discord" && (
                                 <TextField
                                     label="Discord Channel"
-                                    value={discordChannel}
-                                    onChange={handleDiscordChannelChange}
                                     fullWidth
-                                    sx={{ marginTop: "8px" }}
+                                    value={discordChannel}
+                                    onChange={(e) => setDiscordChannel(e.target.value)}
+                                    sx={{ mb: 2 }}
                                 />
                             )}
-                            <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
-                                <Button variant="contained" color="primary" onClick={handleSubmit}>
+
+                            <Box display="flex" justifyContent="flex-end">
+                                <Button variant="contained" onClick={handleSubmit}>
                                     Save
                                 </Button>
                             </Box>
-                        </Container>
-                    </Box>
-                </Fade>
-            </Modal>
-            <Snackbar open={snackbarOpen} autoHideDuration={5000} onClose={handleSnackbarClose}>
-                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
+                        </Box>
+                    </Fade>
+                </Modal>
+            </Container>
         </Box>
     );
 };
 
-
 export default Configuration;
-

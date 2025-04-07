@@ -1,246 +1,203 @@
 import React, { useState } from "react";
+import {
+  Box, Container, Typography, TextField, Select,
+  MenuItem, Button, Modal, Fade, FormControl, InputLabel,
+  Switch, useTheme, useMediaQuery
+} from "@mui/material";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFnsV3";
-import { SelectChangeEvent, Switch } from "@mui/material";
-import FormControl from '@mui/material/FormControl';
-import InputLabel from '@mui/material/InputLabel';
 import { de } from 'date-fns/locale/de';
-import {
-    Modal,
-    Fade,
-    Box,
-    Container,
-    Typography,
-    TextField,
-    Select,
-    MenuItem,
-    Button,
-} from "@mui/material";
+
 import Navbar from "../components/Navbar";
 import AlertsTable from "../components/AlertsTable";
 import NotificationDropdown from "../components/NotificationDropdown";
-
+import { toast } from "react-toastify";
 const CreateAlert: React.FC = () => {
-    const [alertName, setAlertName] = useState("");
-    const [walletId, setWalletId] = useState("");
-    const [ruleType, setRuleType] = useState("");
-    const [openModal, setOpenModal] = useState(false);
-    const [selectedNotifications, setSelectedNotifications] = useState<string[]>([]);
-    const [transactionThreshold, setTransactionThreshold] = useState("");
-    const [timeFrame, setTimeFrame] = useState("");
-    const [transactionStatus, setTransactionStatus] = useState(true);
+  const [alertName, setAlertName] = useState("");
+  const [walletId, setWalletId] = useState("");
+  const [ruleType, setRuleType] = useState("");
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedNotifications, setSelectedNotifications] = useState<string[]>([]);
+  const [transactionThreshold, setTransactionThreshold] = useState("");
+  const [timeFrame, setTimeFrame] = useState("");
+  const [transactionStatus, setTransactionStatus] = useState(true);
 
-    const handleNotificationChange = (notifications: string[]) => {
-        setSelectedNotifications(notifications);
-    };
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isDark = theme.palette.mode === "dark";
 
-    const handleOpenModal = () => {
-        setOpenModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setOpenModal(false);
-    };
-    const handleAlertNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setAlertName(event.target.value);
-    };
-
-    const handleWalletIdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setWalletId(event.target.value as string);
-    };
-
-    const handleRuleTypeChange = (event: SelectChangeEvent<string>) => {
-        setRuleType(event.target.value as string);
-    };
-    const handleTransactionThresholdChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTransactionThreshold(event.target.value);
+  const handleSubmit = async () => {
+    const token = localStorage.getItem("jwtToken");
+    if (!token) {
+        toast.error("Unauthorized: Please log in.");
+      return;
+    }
+    const payload = {
+      AlertName: alertName,
+      RuleType: ruleType,
+      NotificationPreferences: JSON.stringify(selectedNotifications),
+      WalletID: walletId,
+      TransactionThreshold: transactionThreshold ? parseFloat(transactionThreshold) : 0,
+      TimeFrame: timeFrame ? parseInt(timeFrame) : 0,
+      TransactionStatus: transactionStatus,
     };
 
-    const handleTimeFrameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTimeFrame(event.target.value);
-    };
-    const handleTransactionStatusChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTransactionStatus(event.target.checked);
-    };
+    try {
+      const response = await fetch("http://localhost:8080/api/create-alert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
 
-    const handleSubmit = async () => {
-        const token = localStorage.getItem("jwtToken"); // Kullanıcının oturum token'ı
-        if (!token) {
-            alert("Unauthorized: Please log in.");
-            return;
-        }
-        const payload: any = {
-            AlertName: alertName,
-            RuleType: ruleType,
-            NotificationPreferences: JSON.stringify(selectedNotifications),
-            WalletID: walletId,
-            TransactionThreshold : transactionThreshold ? parseFloat(transactionThreshold) : 0,
-            TimeFrame : timeFrame ? parseInt(timeFrame) : 0,
-            TransactionStatus : transactionStatus,
-        };
-    
-        try {
-            const response = await fetch("http://localhost:8080/api/create-alert", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify(payload),
-            });
-    
-            if (!response.ok) {
-                throw new Error("Failed to create alert.");
-            }
-    
-            const data = await response.json();
-            console.log("✅ Alert Created:", data);
-            alert("Alert created successfully!");
-    
-            // Modal'ı kapat ve formu sıfırla
-            handleCloseModal();
-            setAlertName("");
-            setWalletId("");
-            setRuleType("");
-            setTransactionThreshold("");
-            setTimeFrame("");
-            setTransactionStatus(true);
-            setSelectedNotifications([]);
-        } catch (error) {
-            console.error("❌ Error:", error);
-            alert("An error occurred while creating the alert.");
-        }
-    };
-    
+      if (!response.ok) throw new Error("Failed to create alert.");
+      toast.success("Alert created successfully!");
+      setAlertName("");
+      setWalletId("");
+      setRuleType("");
+      setTransactionThreshold("");
+      setTimeFrame("");
+      setTransactionStatus(true);
+      setSelectedNotifications([]);
+      handleCloseModal();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to create alert.");
+    }
+  };
 
-    return (
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+  const handleCloseModal = () => setOpenModal(false);
+
+  return (
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={de}>
+      <Box
+        sx={{
+          minHeight: "100vh",
+          background: isDark
+            ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
+            : "linear-gradient(to right, #ffffff, #f0f4f8)",
+          transition: "background 0.3s ease",
+          color: theme.palette.text.primary,
+        }}
+      >
+        <Navbar />
+
+        <Container sx={{ pt: 15, pb: 4 }}>
+          <Box display="flex" flexDirection={isMobile ? "column" : "row"} justifyContent="space-between" alignItems="center" mb={4} gap={2}>
+            <Typography variant="h4" fontWeight={600}>Your Alerts</Typography>
+            <Button variant="contained" onClick={() => setOpenModal(true)}>
+              Create Alert
+            </Button>
+          </Box>
+
+          <AlertsTable />
+        </Container>
+
+        <Modal open={openModal} onClose={handleCloseModal}>
+          <Fade in={openModal}>
             <Box
-                sx={{
-                    height: "100vh",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
+              sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: isMobile ? "90%" : "60%",
+                maxHeight: "90vh",
+                overflowY: "auto",
+                background: theme.palette.mode === "dark"
+                                    ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
+                                    : "linear-gradient(to right, #ffffff, #f0f4f8)",
+                                color: theme.palette.text.primary,
+                borderRadius: 4,
+                boxShadow: 24,
+                p: 4,
+              }}
             >
-                <Navbar />
-                <Box sx={{ display: "flex", justifyContent: "space-between", width: "80%" }}>
-                    <Typography variant="h4">Your Alerts</Typography>
-                    <Button variant="contained" color="primary" onClick={handleOpenModal}>
-                        Create Alert
-                    </Button>
-                </Box>
-                <Box sx={{ display: "flex", justifyContent: "center", width: "70%" }}>
-                    <AlertsTable />
-                </Box>
+              <Typography variant="h5" gutterBottom>Create Alert</Typography>
 
-                <Modal
-                    open={openModal}
-                    onClose={handleCloseModal}
-                    aria-labelledby="alert-modal-title"
-                    aria-describedby="alert-modal-description"
+              <TextField
+                label="Alert Name"
+                fullWidth
+                value={alertName}
+                onChange={(e) => setAlertName(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+
+              <TextField
+                label="Wallet ID"
+                fullWidth
+                value={walletId}
+                onChange={(e) => setWalletId(e.target.value)}
+                sx={{ mb: 2 }}
+              />
+
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel id="rule-label">Rule</InputLabel>
+                <Select
+                  labelId="rule-label"
+                  value={ruleType}
+                  onChange={(e) => setRuleType(e.target.value)}
+                  label="Rule"
                 >
-                    <Fade in={openModal}>
-                        <Box sx={{
-                            position: 'absolute',
-                            borderRadius: 6,
-                            width: "70%",
-                            backgroundColor: "#353e96",
-                            border: '2px solid #fff',
-                            boxShadow: 12,
-                            p: 4,
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                        }}>
+                  <MenuItem value="invalidSignatures">Invalid Signatures</MenuItem>
+                  <MenuItem value="replayAttacks">Replay Attacks</MenuItem>
+                  <MenuItem value="doubleSpends">Double Spends</MenuItem>
+                  <MenuItem value="highFailureRate">High Failure Rate</MenuItem>
+                  <MenuItem value="anomalousVolume">Anomalous Volume</MenuItem>
+                  <MenuItem value="suspiciousNewAccounts">Suspicious New Accounts</MenuItem>
+                  <MenuItem value="customRule">Custom Rule</MenuItem>
+                </Select>
+              </FormControl>
 
-                            <Container maxWidth="md">
-                                <Typography variant="h4" gutterBottom>
-                                    Create Alert
-                                </Typography>
-                                <TextField
-                                    label="Alert Name"
-                                    value={alertName}
-                                    onChange={handleAlertNameChange}
-                                    fullWidth
-                                />
-                                <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
-                                    <FormControl variant="filled" sx={{ minWidth: "100%" }}>
-                                        <TextField
-                                            label="Wallet ID"
-                                            value={walletId}
-                                            onChange={handleWalletIdChange}
-                                            fullWidth
-                                        />
-                                    </FormControl>
-                                </Box>
-                                <FormControl variant="filled" sx={{ minWidth: "100%", marginTop: 2 }}>
-                                    <InputLabel id="rule">Rule</InputLabel>
-                                    <Select
-                                        labelId="rule"
-                                        value={ruleType}
-                                        onChange={handleRuleTypeChange}
-                                        fullWidth
-                                        sx={{ marginTop: "5px" }}
-                                    >
-                                        <MenuItem value="invalidSignatures">Invalid Signatures</MenuItem>
-                                        <MenuItem value="replayAttacks">Replay Attacks</MenuItem>
-                                        <MenuItem value="doubleSpends">Double Spends</MenuItem>
-                                        <MenuItem value="highFailureRate">High Failure Rate</MenuItem>
-                                        <MenuItem value="anomalousVolume">Anomalous Volume</MenuItem>
-                                        <MenuItem value="suspiciousNewAccounts">Suspicious New Accounts</MenuItem>
-                                        <MenuItem value="customRule">Custom Rule</MenuItem>
-                                    </Select>
+              {ruleType === "customRule" && (
+                <>
+                  <Box display="flex" flexDirection={isMobile ? "column" : "row"} gap={2} mb={2}>
+                    <TextField
+                      label="Transaction Threshold"
+                      type="number"
+                      fullWidth
+                      value={transactionThreshold}
+                      onChange={(e) => setTransactionThreshold(e.target.value)}
+                    />
+                    <TextField
+                      label="Time Frame (minutes)"
+                      type="number"
+                      fullWidth
+                      value={timeFrame}
+                      onChange={(e) => setTimeFrame(e.target.value)}
+                    />
+                  </Box>
 
-                                </FormControl>
-                                {ruleType === "customRule" && (
-                                    <Box>
-                                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                                            <TextField
-                                                label="Transaction Threshold"
-                                                type="number"
-                                                value={transactionThreshold}
-                                                onChange={handleTransactionThresholdChange}
-                                                fullWidth
-                                                sx={{ marginTop: 2, marginRight: 2 }}
-                                            />
-                                            <TextField
-                                                label="Time Frame (minutes)"
-                                                type="number"
-                                                value={timeFrame}
-                                                onChange={handleTimeFrameChange}
-                                                fullWidth
-                                                sx={{ marginTop: 2 }}
-                                            />
-                                        </Box>
-                                        <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2, alignItems: 'center' }}>
-                                            <FormControl sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                                                <Typography sx={{ marginRight: 1 }}>Transaction Status : </Typography>
-                                                <Switch checked={transactionStatus} onChange={handleTransactionStatusChange} color="warning" />
-                                                <Typography sx={{ marginLeft: 1 }}>{transactionStatus ? "True" : "False"}</Typography>
-                                            </FormControl>
-                                        </Box>
+                  <Box display="flex" alignItems="center" gap={2} mb={2}>
+                    <Typography>Transaction Status:</Typography>
+                    <Switch
+                      checked={transactionStatus}
+                      onChange={(e) => setTransactionStatus(e.target.checked)}
+                      color="primary"
+                    />
+                    <Typography>{transactionStatus ? "True" : "False"}</Typography>
+                  </Box>
+                </>
+              )}
 
+              <Box mb={2}>
+                <NotificationDropdown
+                  selectedNotifications={selectedNotifications}
+                  onChange={setSelectedNotifications}
+                />
+              </Box>
 
-                                    </Box>
-                                )}
-                                <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 1 }}>
-                                    <NotificationDropdown
-                                        selectedNotifications={selectedNotifications}
-                                        onChange={handleNotificationChange}
-                                    />
-                                </Box>
-                                <Button variant="contained" color="primary" onClick={handleSubmit} sx={{ marginTop: 2 }}>
-                                    Create Alert
-                                </Button>
-                            </Container>
-                        </Box>
-                    </Fade>
-                </Modal>
+              <Button variant="contained" onClick={handleSubmit}>
+                Create Alert
+              </Button>
             </Box>
-        </LocalizationProvider>
-    );
+          </Fade>
+        </Modal>
+      </Box>
+    </LocalizationProvider>
+  );
 };
 
 export default CreateAlert;

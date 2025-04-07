@@ -15,7 +15,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ selectedNot
   };
 
   const handleDelete = (event: React.MouseEvent, notification: string) => {
-    event.stopPropagation(); // Menü açılmasını engelle
+    event.stopPropagation(); 
     onChange(selectedNotifications.filter((item) => item !== notification));
   };
 
