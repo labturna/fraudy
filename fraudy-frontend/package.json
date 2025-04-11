@@ -17,10 +17,13 @@
     "@mui/x-data-grid": "^7.27.0",
     "@mui/x-date-pickers": "^7.27.0",
     "date-fns": "^4.1.0",
+    "graphology": "^0.26.0",
+    "graphology-layout-forceatlas2": "^0.10.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.29.0",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "sigma": "^3.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",

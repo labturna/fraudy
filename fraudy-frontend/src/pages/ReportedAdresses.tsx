@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   Box,
-  Container,
   Typography,
   Paper,
   Table,
@@ -14,9 +13,11 @@ import {
   TextField,
   TablePagination,
   TableContainer,
-  useMediaQuery,
+  useMediaQuery
 } from "@mui/material";
+import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import MainContainer from "../components/MainContainer";
 
 type ReportedItem = {
   id: string;
@@ -61,6 +62,7 @@ const ReportedAddresses: React.FC = () => {
   const theme = useTheme();
   const isDark = theme.palette.mode === "dark";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [reports, setReports] = useState<ReportedItem[]>([]);
@@ -90,105 +92,108 @@ const ReportedAddresses: React.FC = () => {
   const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background: isDark
-          ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
-          : "linear-gradient(to right, #ffffff, #f0f4f8)",
-        transition: "background 0.3s ease",
-      }}
-    >
-      <Navbar />
-      <Container sx={{ pt: 15 }}>
-        <Typography variant="h5" fontWeight={600} gutterBottom>
-          Reported Addresses
-        </Typography>
+    <Box sx={{ display: "flex" }}>
+      <Sidebar onToggle={(open) => setSidebarOpen(open)} />
 
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search by address or reporter..."
-          value={searchTerm}
-          onChange={handleSearchChange}
-          sx={{ mt: 2 }}
+      <MainContainer sidebarOpen={sidebarOpen}>
+        <Navbar
+          searchQuery={searchTerm}
+          onSearchChange={handleSearchChange}
+          onSearchSubmit={() => {}}
+          onSettingsClick={() => {}}
+          sidebarOpen={sidebarOpen}
         />
 
-        <Paper
-          sx={{
-            mt: 3,
-            borderRadius: 3,
-            p: 2,
-            background: isDark
-              ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
-              : "linear-gradient(to right, #ffffff, #f0f4f8)",
-          }}
-        >
-          <TableContainer sx={{ overflowX: "auto" }}>
-            <Table size={isMobile ? "small" : "medium"}>
-              <TableHead>
-                <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Reporter</TableCell>
-                  <TableCell>Date</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Online</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paginatedReports.map((report) => (
-                  <TableRow key={report.id}>
-                    <TableCell>{report.id}</TableCell>
-                    <TableCell sx={{ maxWidth: 160, wordBreak: "break-word" }}>
-                      {report.address}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={report.type}
-                        color={report.type === "phishing" ? "error" : "info"}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>{report.reportedBy}</TableCell>
-                    <TableCell>
-                      {new Date(report.reportedAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={report.isValid ? "Valid" : "Not Valid"}
-                        color={report.isValid ? "success" : "warning"}
-                        size="small"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {report.type === "phishing" ? (
+        <Box sx={{ mt: 3, mx: isMobile ? 0 : 3 }}>
+          <Typography variant="h5" fontWeight={600} gutterBottom>
+            Reported Addresses
+          </Typography>
+
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder="Search by address or reporter..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            sx={{ mt: 2 }}
+          />
+
+          <Paper
+            sx={{
+              mt: 3,
+              borderRadius: 3,
+              p: 2,
+              background: isDark
+                ? "linear-gradient(to right, #0f2027, #0f2027, #2c5364)"
+                : "linear-gradient(to right, #ffffff, #f0f4f8)",
+            }}
+          >
+            <TableContainer sx={{ overflowX: "auto" }}>
+              <Table size={isMobile ? "small" : "medium"}>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>ID</TableCell>
+                    <TableCell>Address</TableCell>
+                    <TableCell>Type</TableCell>
+                    <TableCell>Reporter</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Online</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {paginatedReports.map((report) => (
+                    <TableRow key={report.id}>
+                      <TableCell>{report.id}</TableCell>
+                      <TableCell sx={{ maxWidth: 160, wordBreak: "break-word" }}>
+                        {report.address}
+                      </TableCell>
+                      <TableCell>
                         <Chip
-                          label={report.isPhishingOnline ? "Online" : "Offline"}
-                          color={report.isPhishingOnline ? "success" : "default"}
+                          label={report.type}
+                          color={report.type === "phishing" ? "error" : "info"}
                           size="small"
                         />
-                      ) : (
-                        "-"
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                      </TableCell>
+                      <TableCell>{report.reportedBy}</TableCell>
+                      <TableCell>
+                        {new Date(report.reportedAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={report.isValid ? "Valid" : "Not Valid"}
+                          color={report.isValid ? "success" : "warning"}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        {report.type === "phishing" ? (
+                          <Chip
+                            label={report.isPhishingOnline ? "Online" : "Offline"}
+                            color={report.isPhishingOnline ? "success" : "default"}
+                            size="small"
+                          />
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
 
-          <TablePagination
-            component="div"
-            count={filteredReports.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={[]}
-          />
-        </Paper>
-      </Container>
+            <TablePagination
+              component="div"
+              count={filteredReports.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[]}
+            />
+          </Paper>
+        </Box>
+      </MainContainer>
     </Box>
   );
 };

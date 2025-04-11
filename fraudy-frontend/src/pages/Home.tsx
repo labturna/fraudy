@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import {
-  Box, Container, Typography, TextField, InputAdornment,
-  IconButton, Menu, MenuItem, Checkbox, Paper, Fade, useTheme
+  Box, Typography, useTheme,
+  Toolbar
 } from "@mui/material";
 import Navbar from "../components/Navbar";
-import SearchIcon from "@mui/icons-material/Search";
-import SettingsIcon from "@mui/icons-material/Settings";
 import { styled } from "@mui/material/styles";
 import ReportButton from "../components/ReportButton";
-
+import TransactionGraph from "./TransactionGraph";
+import Sidebar from "../components/Sidebar";
+import MainContainer from "../components/MainContainer";
 const AnimatedTypography = styled(Typography)(({ theme }) => ({
   animation: `slideFadeIn 2s ease-out`,
   fontWeight: 700,
@@ -26,145 +26,69 @@ const AnimatedTypography = styled(Typography)(({ theme }) => ({
   },
 }));
 
-
 const Home: React.FC = () => {
   const theme = useTheme();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [checked, setChecked] = useState<boolean[]>([false, false, false]);
+  const [, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [submittedAddress, setSubmittedAddress] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }
 
-  const handleClose = () => setAnchorEl(null);
-
-  const handleCheckboxChange = (index: number) => {
-    const newChecked = [...checked];
-    newChecked[index] = !checked[index];
-    setChecked(newChecked);
+  const handleSearchSubmit = () => {
+    setSubmittedAddress(searchQuery.trim());
+    setSearchQuery("");
   };
 
   const isDark = theme.palette.mode === "dark";
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        py: 10,
-        background: isDark
-          ? "linear-gradient(to right, #0f2027,#0f2027, #2c5364)"
-          : "linear-gradient(to right, #ffffff, #f0f4f8)",
-        color: theme.palette.text.primary,
-        transition: "background 0.5s ease",
-        overflow: "hidden",
-      }}
-    >
-      <Navbar />
-      <Container
-        maxWidth="md"
+    <Box sx={{ display: "flex", }}>
+      <Box
+        component="main"
         sx={{
-          mt: 10,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
+          flexGrow: 1,
+          p: 3,
+          minHeight: "100vh",
+          background: isDark
+            ? "linear-gradient(to right, #0f2027,#0f2027, #2c5364)"
+            : "linear-gradient(to right, #ffffff, #f0f4f8)",
+          transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+          }),
         }}
       >
-        <AnimatedTypography variant="h3">
-          Fraud Detection System
-        </AnimatedTypography>
-        <Typography
-          variant="h6"
-          sx={{
-            mt: 1,
-            color: theme.palette.text.secondary,
-            textAlign: "center",
-          }}
-        >
-          Secure your transactions with AI-powered fraud detection.
-        </Typography>
+        <Sidebar onToggle={(open) => setSidebarOpen(open)} />
 
-        <Fade in timeout={1000}>
-          <Paper
-            elevation={6}
+        <Navbar
+          searchQuery={searchQuery}
+          onSearchChange={(e) => setSearchQuery(e.target.value)}
+          onSearchSubmit={handleSearchSubmit}
+          onSettingsClick={handleClick}
+          sidebarOpen={sidebarOpen}
+        />
+        <MainContainer sidebarOpen={sidebarOpen}>
+          <Toolbar />
+          <AnimatedTypography variant="h3">
+            Fraud Detection System
+          </AnimatedTypography>
+          <Typography
+            variant="h6"
             sx={{
-              mt: 6,
-              px: 2,
-              py: 3,
-              width: "100%",
-              backdropFilter: "blur(10px)",
-              backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.8)",
-              borderRadius: 3,
-              border: isDark
-                ? "1px solid rgba(255,255,255,0.1)"
-                : "1px solid rgba(0,0,0,0.1)",
-              transition: "background 0.3s ease",
+              mt: 1,
+              color: theme.palette.text.secondary,
+              textAlign: "center",
             }}
           >
-            <TextField
-              fullWidth
-              variant="outlined"
-              placeholder="Search Wallet, Transaction ID, or Timestamp..."
-              sx={{
-                input: { color: theme.palette.text.primary },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: isDark ? "#607d8b" : "#ccc",
-                  },
-                  "&:hover fieldset": {
-                    borderColor: theme.palette.primary.main,
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: theme.palette.primary.main,
-                  },
-                },
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon sx={{ color: theme.palette.primary.main }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleClick}>
-                      <SettingsIcon sx={{ color: theme.palette.primary.main }} />
-                    </IconButton>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
-                      onClose={handleClose}
-                      PaperProps={{
-                        sx: {
-                          backgroundColor: isDark ? "#263238" : "#ffffff",
-                          color: isDark ? "#e0e0e0" : "#000000",
-                          borderRadius: 2,
-                          boxShadow: 3,
-                        },
-                      }}
-                    >
-                      {["Wallet Only", "Transaction Only", "Include Timestamp"].map(
-                        (label, index) => (
-                          <MenuItem key={label}>
-                            <Checkbox
-                              checked={checked[index]}
-                              onChange={() => handleCheckboxChange(index)}
-                              sx={{
-                                color: theme.palette.primary.main,
-                              }}
-                            />
-                            {label}
-                          </MenuItem>
-                        )
-                      )}
-                    </Menu>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          </Paper>
-        </Fade>
-      </Container>
-      <ReportButton />
+            Secure your transactions with AI-powered fraud detection.
+          </Typography>
+          {submittedAddress && <TransactionGraph address={submittedAddress} />}
+          <ReportButton />
+        </MainContainer>
+      </Box>
     </Box>
   );
 };
