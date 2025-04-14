@@ -8,6 +8,7 @@ import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import MainContainer from "../components/MainContainer";
 import ConfigurationTable from "../components/ConfigurationTable";
+import ReportButton from "../components/ReportButton";
 import { toast } from "react-toastify";
 
 const Configuration: React.FC = () => {
@@ -136,6 +137,10 @@ const Configuration: React.FC = () => {
           </Box>
 
           <ConfigurationTable refreshConfig={refreshConfig} />
+
+          <Box sx={{ mt: 4 }}>
+            <ReportButton />
+          </Box>
         </Box>
 
         {/* MODAL */}

@@ -22,6 +22,7 @@ import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 import MainContainer from "../components/MainContainer";
+import ReportButton from "../components/ReportButton";
 
 const InfoCard = ({
   title,
@@ -119,7 +120,7 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6} md={4}>
                 <InfoCard
                   title="Alerts Created"
-                  description="You’ve created 12 alerts to monitor suspicious wallets and activities."
+                  description="You've created 12 alerts to monitor suspicious wallets and activities."
                   icon={<NotificationsActiveOutlinedIcon color="primary" />}
                 />
               </Grid>
@@ -147,7 +148,7 @@ const Profile: React.FC = () => {
               <Grid item xs={12} sm={6} md={4}>
                 <InfoCard
                   title="Report Stats"
-                  description="You’ve reported 5 addresses in the last month. 2 of them have been accepted. 3 of them have been declined."
+                  description="You've reported 5 addresses in the last month. 2 of them have been accepted. 3 of them have been declined."
                   icon={<NotificationsActiveOutlinedIcon color="primary" />}
                 />
               </Grid>
@@ -192,6 +193,9 @@ const Profile: React.FC = () => {
               </Box>
             </Box>
           </Paper>
+          <Box sx={{ mt: 4 }}>
+            <ReportButton />
+          </Box>
         </Box>
       </MainContainer>
     </Box>

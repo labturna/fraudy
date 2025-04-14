@@ -18,6 +18,7 @@ import {
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import MainContainer from "../components/MainContainer";
+import ReportButton from "../components/ReportButton";
 
 type ReportedItem = {
   id: string;
@@ -192,6 +193,9 @@ const ReportedAddresses: React.FC = () => {
               rowsPerPageOptions={[]}
             />
           </Paper>
+          <Box sx={{ mt: 4 }}>
+            <ReportButton />
+          </Box>
         </Box>
       </MainContainer>
     </Box>

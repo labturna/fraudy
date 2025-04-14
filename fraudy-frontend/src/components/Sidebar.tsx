@@ -2,11 +2,7 @@ import React, { useState } from "react";
 import {
   Box, Divider, Drawer, IconButton, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Toolbar, useTheme,
-  useMediaQuery,
-  CssBaseline,
-  MenuItem,
-  Link,
-  Menu
+  useMediaQuery, CssBaseline, MenuItem, Link, Menu, Typography
 } from "@mui/material";
 import {
   ChevronLeft, ChevronRight, Home, Doorbell,
@@ -18,8 +14,10 @@ import { useNavigate } from "react-router-dom";
 import HistoryOutlined from "@mui/icons-material/HistoryOutlined";
 import AddAlarm from "@mui/icons-material/AddAlarm";
 import logo from "../assets/img/logo.png";
+
 const drawerWidth = 240;
-const collapsedWidth = 72;
+const collapsedWidth = 64;
+const mobileDrawerWidth = "100%";
 
 interface SidebarProps {
   onToggle: (isOpen: boolean) => void;
@@ -80,18 +78,29 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
         WebkitBackdropFilter: "blur(12px)",
       }}
     >
-      <Toolbar sx={{
-        display: 'flex',
-        justifyContent: desktopOpen ? 'space-between' : 'center',
-        alignItems: 'center',
-        minHeight: '64px',
-        px: desktopOpen ? 2 : 0
-      }}>
+      <Toolbar 
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          minHeight: '64px',
+          px: 2,
+          gap: 1
+        }}
+      >
         {desktopOpen && (
-          <img src={logo} alt="Logo" style={{ width: "140px", height: "auto" }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <img src={logo} alt="Logo" style={{ width: "128px", height: "32px" }} />
+          </Box>
         )}
         {!isMobile && (
-          <IconButton onClick={handleDrawerToggle}>
+          <IconButton 
+            onClick={handleDrawerToggle}
+            sx={{ 
+              color: theme.palette.text.primary,
+              '&:hover': { backgroundColor: 'rgba(255, 255, 255, 0.1)' }
+            }}
+          >
             {desktopOpen ? <ChevronLeft /> : <ChevronRight />}
           </IconButton>
         )}
@@ -112,6 +121,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                     minHeight: 48,
                     justifyContent: desktopOpen ? 'initial' : 'center',
                     px: 2.5,
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    }
                   }}
                 >
                   <ListItemIcon
@@ -119,6 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                       minWidth: 0,
                       mr: desktopOpen ? 3 : 'auto',
                       justifyContent: 'center',
+                      color: theme.palette.text.primary
                     }}
                   >
                     {item.icon}
@@ -141,8 +154,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                     backgroundColor: theme.palette.background.paper,
                     borderRadius: 2,
                     boxShadow: 4,
-                    ml: desktopOpen ? `${drawerWidth - collapsedWidth}px` : '72px',
-                    mt: '-40px'
+                    ml: isMobile ? 0 : (desktopOpen ? `${drawerWidth - collapsedWidth}px` : '64px'),
+                    mt: isMobile ? '8px' : '-40px',
+                    minWidth: isMobile ? '100%' : '200px'
                   },
                 }}
               >
@@ -152,8 +166,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                     component={Link}
                     href={sub.href}
                     onClick={handleClose}
+                    sx={{
+                      py: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                      }
+                    }}
                   >
-                    <ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: 36 }}>
                       {sub.icon}
                     </ListItemIcon>
                     {sub.text}
@@ -170,6 +190,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                   minHeight: 48,
                   justifyContent: desktopOpen ? 'initial' : 'center',
                   px: 2.5,
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
                 }}
               >
                 <ListItemIcon
@@ -177,6 +200,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
                     minWidth: 0,
                     mr: desktopOpen ? 3 : 'auto',
                     justifyContent: 'center',
+                    color: theme.palette.text.primary
                   }}
                 >
                   {item.icon}
@@ -197,6 +221,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
               minHeight: 48,
               justifyContent: desktopOpen ? 'initial' : 'center',
               px: 2.5,
+              '&:hover': {
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              }
             }}
           >
             <ListItemIcon
@@ -208,7 +235,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
             >
               <ThemeSwitcher />
             </ListItemIcon>
-            {desktopOpen && <ListItemText primary="Toggle Theme" />}
+            {desktopOpen && <ListItemText primary="Theme" />}
           </ListItemButton>
         </ListItem>
 
@@ -251,16 +278,16 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
         open={mobileOpen}
         onClose={() => setMobileOpen(false)}
         ModalProps={{
-          keepMounted: true, // Better open performance on mobile
+          keepMounted: true,
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
           '& .MuiDrawer-paper': {
-            width: drawerWidth,
+            width: mobileDrawerWidth,
             boxSizing: 'border-box',
             background: theme.palette.mode === "dark"
-              ? "rgba(15, 32, 39, 0.9)"
-              : "rgba(255, 255, 255, 0.9)",
+              ? "rgba(15, 32, 39, 0.95)"
+              : "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(12px)",
           },
         }}
@@ -284,8 +311,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
               duration: theme.transitions.duration.enteringScreen,
             }),
             background: theme.palette.mode === "dark"
-              ? "rgba(15, 32, 39, 0.9)"
-              : "rgba(255, 255, 255, 0.9)",
+              ? "rgba(15, 32, 39, 0.95)"
+              : "rgba(255, 255, 255, 0.95)",
             backdropFilter: "blur(12px)",
             zIndex: theme.zIndex.drawer - 1,
           },
@@ -299,19 +326,36 @@ const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
         <IconButton
           color="inherit"
           aria-label="open drawer"
-          onClick={() => setMobileOpen(true)}
+          onClick={handleDrawerToggle}
           edge="start"
           sx={{
             position: 'fixed',
-            left: 12,
-            top: 12,
+            left: 16,
+            top: 16,
             zIndex: theme.zIndex.drawer + 1,
-            backgroundColor: theme.palette.background.paper,
-            boxShadow: 1,
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? 'rgba(15, 32, 39, 0.95)'
+              : 'rgba(255, 255, 255, 0.95)',
+            boxShadow: 2,
             display: { md: 'none' },
+            '&:hover': {
+              backgroundColor: theme.palette.mode === 'dark'
+                ? 'rgba(15, 32, 39, 0.8)'
+                : 'rgba(255, 255, 255, 0.8)',
+            },
+            color: theme.palette.text.primary,
+            border: `1px solid ${theme.palette.mode === 'dark' 
+              ? 'rgba(255, 255, 255, 0.1)'
+              : 'rgba(0, 0, 0, 0.1)'}`,
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            borderRadius: '12px',
+            width: '40px',
+            height: '40px',
+            transition: 'all 0.2s ease-in-out',
           }}
         >
-          <MenuIcon />
+          {mobileOpen ? <ChevronLeft /> : <MenuIcon />}
         </IconButton>
       )}
     </>
